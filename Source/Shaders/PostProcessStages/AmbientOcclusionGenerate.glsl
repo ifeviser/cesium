@@ -1,3 +1,5 @@
+#extension GL_OES_standard_derivatives : enable
+
 uniform sampler2D randomTexture;
 uniform sampler2D depthTexture;
 uniform float intensity;
@@ -39,9 +41,7 @@ void main(void)
 {
     float depth = czm_readDepth(depthTexture, v_textureCoordinates);
     vec4 posInCamera = clipToEye(v_textureCoordinates, depth);
-
-    if (posInCamera.z > frustumLength)
-    {
+    if (posInCamera.z > frustumLength) {
         gl_FragColor = vec4(1.0);
         return;
     }
@@ -55,61 +55,56 @@ void main(void)
 
     float ao = 0.0;
     vec2 sampleDirection = vec2(1.0, 0.0);
-    float gapAngle = 90.0 * czm_radiansPerDegree;
-
-    // RandomNoise
+    float gapAngle = 22.5 * czm_radiansPerDegree;
     float randomVal = texture2D(randomTexture, v_textureCoordinates).x;
-
-    //Loop for each direction
-    for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         float newGapAngle = gapAngle * (float(i) + randomVal);
         float cosVal = cos(newGapAngle);
         float sinVal = sin(newGapAngle);
-
-        //Rotate Sampling Direction
         vec2 rotatedSampleDirection = vec2(cosVal * sampleDirection.x - sinVal * sampleDirection.y, sinVal * sampleDirection.x + cosVal * sampleDirection.y);
+        
+        vec3 tangentVector = dFdx(posInCamera.xyz) * rotatedSampleDirection.x + dFdy(posInCamera.xyz) * rotatedSampleDirection.y;
+        float tangentAngle = atan(tangentVector.z/length(tangentVector.xy));
+        float horizontalAngle = tangentAngle;
         float localAO = 0.0;
+        float localCurrAO = 0.0;
+        float localPrevAO = 0.0;
         float localStepSize = stepSize;
-
-        //Loop for each step
-        for (int j = 0; j < 6; j++)
-        {
+        for (int j = 0; j < 16; j++) {
             vec2 newCoords = v_textureCoordinates + rotatedSampleDirection * localStepSize * pixelSize;
-
-            //Exception Handling
-            if(newCoords.x > 1.0 || newCoords.y > 1.0 || newCoords.x < 0.0 || newCoords.y < 0.0)
-            {
+#ifdef WEBGL_2
+            newCoords = round(newCoords * czm_viewport.zw) / czm_viewport.zw;
+#endif
+            if(newCoords.x > 1.0 || newCoords.y > 1.0 || newCoords.x < 0.0 || newCoords.y < 0.0) {
                 break;
             }
-
             float stepDepthInfo = czm_readDepth(depthTexture, newCoords);
             vec4 stepPosInCamera = clipToEye(newCoords, stepDepthInfo);
             vec3 diffVec = stepPosInCamera.xyz - posInCamera.xyz;
             float len = length(diffVec);
-
-            if (len > lengthCap)
-            {
+            if (len > lengthCap) {
                 break;
             }
+            
+            diffVec = normalize(diffVec);
+            float currAngle = atan(diffVec.z/length(diffVec.xy));
+            if (currAngle > horizontalAngle) {
+                float weight = len / lengthCap;
+                weight = 1.0 - weight * weight;
 
-            float dotVal = clamp(dot(normalInCamera, normalize(diffVec)), 0.0, 1.0 );
-            float weight = len / lengthCap;
-            weight = 1.0 - weight * weight;
-
-            if (dotVal < bias)
-            {
-                dotVal = 0.0;
+                horizontalAngle = currAngle;
+                localCurrAO = sin(horizontalAngle) - sin(tangentAngle + bias);
+                localAO += weight*(localCurrAO - localPrevAO);
+                localPrevAO = localCurrAO;
             }
 
-            localAO = max(localAO, dotVal * weight);
             localStepSize += stepSize;
         }
+        
         ao += localAO;
     }
-
-    ao /= 4.0;
-    ao = 1.0 - clamp(ao, 0.0, 1.0);
+    ao /= 16.0;
+    ao = 1.0 - ao;
     ao = pow(ao, intensity);
     gl_FragColor = vec4(vec3(ao), 1.0);
 }
