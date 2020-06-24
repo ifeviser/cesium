@@ -391,11 +391,19 @@ void main()
 
 #ifdef ENABLE_VERTEX_LIGHTING
     float diffuseIntensity = clamp(czm_getLambertDiffuse(czm_lightDirectionEC, normalize(v_normalEC)) * 0.9 + 0.3, 0.0, 1.0);
-    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity, color.a);
+    vec3 positionToEyeEC = -v_positionEC;\n\
+    vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));\n\
+    float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);\n\
+    float specular = specularIntensity * 0.25;\n\
+    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
 #elif defined(ENABLE_DAYNIGHT_SHADING)
     float diffuseIntensity = clamp(czm_getLambertDiffuse(czm_lightDirectionEC, normalEC) * 5.0 + 0.3, 0.0, 1.0);
     diffuseIntensity = mix(1.0, diffuseIntensity, fade);
-    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity, color.a);
+    vec3 positionToEyeEC = -v_positionEC;\n\
+    vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));\n\
+    float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);\n\
+    float specular = specularIntensity * 0.25;\n\
+    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
 #else
     vec4 finalColor = color;
 #endif
