@@ -173,6 +173,19 @@ describe("DataSources/CzmlDataSource", function () {
     expect(dataSource.credit).toBeUndefined();
   });
 
+  it("setting name raises changed event", function () {
+    var dataSource = new CzmlDataSource();
+
+    var spy = jasmine.createSpy("changedEvent");
+    dataSource.changedEvent.addEventListener(spy);
+
+    var newName = "chester";
+    dataSource.name = newName;
+    expect(dataSource.name).toEqual(newName);
+    expect(spy.calls.count()).toEqual(1);
+    expect(spy).toHaveBeenCalledWith(dataSource);
+  });
+
   it("show sets underlying entity collection show.", function () {
     var dataSource = new CzmlDataSource();
 
