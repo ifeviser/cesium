@@ -72,6 +72,7 @@ function Cesium3DTileStyle(style) {
   this._verticalOrigin = undefined;
   this._labelHorizontalOrigin = undefined;
   this._labelVerticalOrigin = undefined;
+  this._lineWidth = undefined;
   this._meta = undefined;
 
   this._colorShaderFunction = undefined;
@@ -128,6 +129,7 @@ function setup(that, styleJson) {
   that.verticalOrigin = styleJson.verticalOrigin;
   that.labelHorizontalOrigin = styleJson.labelHorizontalOrigin;
   that.labelVerticalOrigin = styleJson.labelVerticalOrigin;
+  that.lineWidth = styleJson.lineWidth;
 
   var meta = {};
   if (defined(styleJson.meta)) {
@@ -435,6 +437,24 @@ Object.defineProperties(Cesium3DTileStyle.prototype, {
       this._pointSize = getExpression(this, value);
       this._style.pointSize = getJsonFromExpression(this._pointSize);
       this._pointSizeShaderFunctionReady = false;
+    },
+  },
+
+  lineWidth: {
+    get: function () {
+      //>>includeStart('debug', pragmas.debug);
+      if (!this._ready) {
+        throw new DeveloperError(
+          "The style is not loaded.  Use Cesium3DTileStyle.readyPromise or wait for Cesium3DTileStyle.ready to be true."
+        );
+      }
+      //>>includeEnd('debug');
+
+      return this._lineWidth;
+    },
+    set: function (value) {
+      this._lineWidth = getExpression(this, value);
+      this._style.lineWidth = getJsonFromExpression(this._lineWidth);
     },
   },
 
