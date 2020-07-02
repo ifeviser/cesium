@@ -1686,28 +1686,32 @@ function processProperties(entity, packet, entityCollection, sourceUri) {
         }
 
         var propertyData = propertiesData[key];
-        if (Array.isArray(propertyData)) {
-          for (var i = 0, len = propertyData.length; i < len; ++i) {
+        if (propertyData === null) {
+          entity.properties[key] = null;
+        } else {
+          if (Array.isArray(propertyData)) {
+            for (var i = 0, len = propertyData.length; i < len; ++i) {
+              processProperty(
+                getPropertyType(propertyData[i]),
+                entity.properties,
+                key,
+                propertyData[i],
+                undefined,
+                sourceUri,
+                entityCollection
+              );
+            }
+          } else {
             processProperty(
-              getPropertyType(propertyData[i]),
+              getPropertyType(propertyData),
               entity.properties,
               key,
-              propertyData[i],
+              propertyData,
               undefined,
               sourceUri,
               entityCollection
             );
           }
-        } else {
-          processProperty(
-            getPropertyType(propertyData),
-            entity.properties,
-            key,
-            propertyData,
-            undefined,
-            sourceUri,
-            entityCollection
-          );
         }
       }
     }
@@ -2649,6 +2653,10 @@ function processDocument(packet, dataSource) {
   }
 
   var documentPacket = dataSource._documentPacket;
+
+  if (defined(packet.styleExpression)) {
+    documentPacket.styleExpression = packet.styleExpression;
+  }
 
   if (defined(packet.name)) {
     documentPacket.name = packet.name;

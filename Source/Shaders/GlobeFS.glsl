@@ -395,7 +395,15 @@ void main()
     vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));
     float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);
     float specular = specularIntensity * 0.25;
-    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
+    vec4 finalColor;
+    if (czm_sceneMode == czm_sceneMode3D)
+    {
+      finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
+    }
+    else
+    {
+      finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity, color.a);
+    }
 #elif defined(ENABLE_DAYNIGHT_SHADING)
     float diffuseIntensity = clamp(czm_getLambertDiffuse(czm_lightDirectionEC, normalEC) * 5.0 + 0.3, 0.0, 1.0);
     diffuseIntensity = mix(1.0, diffuseIntensity, fade);
@@ -403,7 +411,15 @@ void main()
     vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));
     float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);
     float specular = specularIntensity * 0.25;
-    vec4 finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
+    vec4 finalColor;
+    if (czm_sceneMode == czm_sceneMode3D)
+    {
+      finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity + specular, color.a);
+    }
+    else
+    {
+      finalColor = vec4(color.rgb * czm_lightColor * diffuseIntensity, color.a);
+    }
 #else
     vec4 finalColor = color;
 #endif
