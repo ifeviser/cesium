@@ -394,7 +394,7 @@ void main()
     vec3 positionToEyeEC = -v_positionEC;
     vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));
     float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);
-    float specular = specularIntensity * 0.25;
+    float specular = specularIntensity * 0.15;
     vec4 finalColor;
     if (czm_sceneMode == czm_sceneMode3D)
     {
@@ -410,7 +410,7 @@ void main()
     vec3 positionToEyeEC = -v_positionEC;
     vec3 normalizedPositionToEyeEC = normalize(normalize(positionToEyeEC));
     float specularIntensity = czm_getSpecular(czm_lightDirectionEC, normalizedPositionToEyeEC, v_normalEC, 10.0);
-    float specular = specularIntensity * 0.25;
+    float specular = specularIntensity * 0.15;
     vec4 finalColor;
     if (czm_sceneMode == czm_sceneMode3D)
     {
