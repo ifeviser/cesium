@@ -2169,7 +2169,7 @@ Resource._Implementations.loadWithXhr = function (
   };
 
   xhr.onerror = function (e) {
-    deferred.reject(new RequestErrorEvent());
+    deferred.reject(new RequestErrorEvent(500));
   };
 
   xhr.send(data);
