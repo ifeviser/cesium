@@ -303,6 +303,75 @@ Picking.prototype.pick = function (scene, windowPosition, width, height) {
   return object;
 };
 
+Picking.prototype.bulkRectPick = function (
+  scene,
+  windowPosition,
+  width,
+  height
+) {
+  //>>includeStart('debug', pragmas.debug);
+  if (!defined(windowPosition)) {
+    throw new DeveloperError("windowPosition is undefined.");
+  }
+  //>>includeEnd('debug');
+
+  scratchRectangleWidth = defaultValue(width, 3.0);
+  scratchRectangleHeight = defaultValue(height, scratchRectangleWidth);
+
+  var context = scene.context;
+  var us = context.uniformState;
+  var frameState = scene.frameState;
+
+  var view = scene.defaultView;
+  scene.view = view;
+
+  var viewport = view.viewport;
+  viewport.x = 0;
+  viewport.y = 0;
+  viewport.width = context.drawingBufferWidth;
+  viewport.height = context.drawingBufferHeight;
+
+  var passState = view.passState;
+  passState.viewport = BoundingRectangle.clone(viewport, passState.viewport);
+
+  var drawingBufferPosition = SceneTransforms.transformWindowToDrawingBuffer(
+    scene,
+    windowPosition,
+    scratchPosition
+  );
+
+  scene.jobScheduler.disableThisFrame();
+
+  scene.updateFrameState();
+  frameState.cullingVolume = getPickCullingVolume(
+    scene,
+    drawingBufferPosition,
+    scratchRectangleWidth,
+    scratchRectangleHeight,
+    viewport
+  );
+  frameState.invertClassification = false;
+  frameState.passes.pick = true;
+  frameState.tilesetPassState = pickTilesetPassState;
+
+  us.update(frameState);
+
+  scene.updateEnvironment();
+
+  scratchRectangle.x = drawingBufferPosition.x;
+  scratchRectangle.y = drawingBufferPosition.y;
+  scratchRectangle.width = scratchRectangleWidth;
+  scratchRectangle.height = scratchRectangleHeight;
+  passState = view.pickFramebuffer.begin(scratchRectangle, view.viewport);
+
+  scene.updateAndExecuteCommands(passState, scratchColorZero);
+  scene.resolveFramebuffers(passState);
+
+  var object = view.pickFramebuffer.endBulk(scratchRectangle);
+  context.endFrame();
+  return object;
+};
+
 function renderTranslucentDepthForPick(scene, drawingBufferPosition) {
   // PERFORMANCE_IDEA: render translucent only and merge with the previous frame
   var context = scene.context;

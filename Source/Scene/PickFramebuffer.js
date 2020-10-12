@@ -134,6 +134,51 @@ PickFramebuffer.prototype.end = function (screenSpaceRectangle) {
   return undefined;
 };
 
+PickFramebuffer.prototype.endBulk = function (screenSpaceRectangle) {
+  var pickedObjects = [];
+  var width = defaultValue(screenSpaceRectangle.width, 1.0);
+  var height = defaultValue(screenSpaceRectangle.height, 1.0);
+
+  var context = this._context;
+  var pixels = context.readPixels({
+    x: screenSpaceRectangle.x,
+    y: screenSpaceRectangle.y,
+    width: width,
+    height: height,
+    framebuffer: this._fb,
+  });
+  var size = width * height;
+  // create pallete buffer
+  var colors32 = new Uint32Array(context._nextPickColor[0]);
+  // current pos of palette entry
+  var palettePos = colors32.length - 1; // Start from top as this will speed up indexOf function
+  // pixel data as 32 bit words so you can handle a pixel at a time rather than bytes.
+  var imgData = new Uint32Array(pixels.buffer);
+  // hold the color. If the images are low colour (less 256) it is highly probable that many pixels will
+  // be the same as the previous. You can avoid the index search if this is the case.
+  var color = (colors32[palettePos--] = imgData[0]); // assign first pixels to ease logic in loop
+  for (var i = 1; i < size && palettePos >= 0; i += 1) {
+    // loop till al pixels read if palette full
+    if (color !== imgData[i]) {
+      // is different than previouse
+      if (colors32.indexOf(imgData[i], palettePos) === -1) {
+        // is in the pallet
+        color = colors32[palettePos--] = imgData[i]; // add it
+      }
+    }
+  }
+  for (var i = colors32.length - 1; i >= palettePos; i--) {
+    var object = context.getObjectByPickColor(
+      Cesium.Color.fromRgba(colors32[i])
+    );
+    if (defined(object)) {
+      pickedObjects.push(object);
+    }
+  }
+  if (pickedObjects.length > 0) return pickedObjects;
+  return undefined;
+};
+
 PickFramebuffer.prototype.isDestroyed = function () {
   return false;
 };
