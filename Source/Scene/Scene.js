@@ -3977,6 +3977,28 @@ Scene.prototype.bulkRectPick = function (windowPosition, width, height) {
 };
 
 /**
+ * Returns all objects with a `primitive` property in a window defined by windowPosition -> (width,height)
+ * or undefined if nothing is at the location. Other properties may potentially be set depending
+ * on the type of primitive and may be used to further identify the picked object.
+ *
+ * @example
+ * // On mouse over, color the feature yellow.
+ * handler.setInputAction(function(movement) {
+ *     var feature = scene.pick(movement.endPosition);
+ *     if (feature instanceof Cesium.Cesium3DTileFeature) {
+ *         feature.color = Cesium.Color.YELLOW;
+ *     }
+ * }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+ *
+ * @param {Cartesian2} windowPositions Window coordinates to perform picking on.
+ * @param {Number} [bufferSize] buffer in kilometres around windowposition to pick for primitives
+ * @returns {Array.<*>} Array of objects, each containing 1 picked primitives.
+ */
+Scene.prototype.bulkPick = function (windowPositions, bufferSize) {
+  return this._picking.bulkPick(this, windowPositions, bufferSize);
+};
+
+/**
  * Returns the cartesian position reconstructed from the depth buffer and window position.
  * The returned position is in world coordinates. Used internally by camera functions to
  * prevent conversion to projected 2D coordinates and then back.

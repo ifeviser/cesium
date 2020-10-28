@@ -134,7 +134,7 @@ PickFramebuffer.prototype.end = function (screenSpaceRectangle) {
   return undefined;
 };
 
-PickFramebuffer.prototype.endBulk = function (screenSpaceRectangle) {
+PickFramebuffer.prototype.endBulkRect = function (screenSpaceRectangle) {
   var pickedObjects = [];
   var width = defaultValue(screenSpaceRectangle.width, 1.0);
   var height = defaultValue(screenSpaceRectangle.height, 1.0);
@@ -154,6 +154,7 @@ PickFramebuffer.prototype.endBulk = function (screenSpaceRectangle) {
   var palettePos = colors32.length - 1; // Start from top as this will speed up indexOf function
   // pixel data as 32 bit words so you can handle a pixel at a time rather than bytes.
   var imgData = new Uint32Array(pixels.buffer);
+
   // hold the color. If the images are low colour (less 256) it is highly probable that many pixels will
   // be the same as the previous. You can avoid the index search if this is the case.
   var color = (colors32[palettePos--] = imgData[0]); // assign first pixels to ease logic in loop
@@ -167,6 +168,60 @@ PickFramebuffer.prototype.endBulk = function (screenSpaceRectangle) {
       }
     }
   }
+  for (var i = colors32.length - 1; i >= palettePos; i--) {
+    var object = context.getObjectByPickColor(
+      Cesium.Color.fromRgba(colors32[i])
+    );
+    if (defined(object)) {
+      pickedObjects.push(object);
+    }
+  }
+  if (pickedObjects.length > 0) return pickedObjects;
+  return undefined;
+};
+
+PickFramebuffer.prototype.endBulk = function (
+  screenSpaceRectangle,
+  drawingBufferPositions
+) {
+  var pickedObjects = [];
+  var width = defaultValue(screenSpaceRectangle.width, 1.0);
+  var height = defaultValue(screenSpaceRectangle.height, 1.0);
+
+  var context = this._context;
+  var pixels = context.readPixels({
+    x: screenSpaceRectangle.x,
+    y: screenSpaceRectangle.y,
+    width: width,
+    height: height,
+    framebuffer: this._fb,
+  });
+  var colors32 = new Uint32Array(context._nextPickColor[0]);
+  // current pos of palette entry
+  var palettePos = colors32.length - 1; // Start from top as this will speed up indexOf function
+
+  var imgData = new Uint32Array(pixels.buffer);
+
+  //console.log(screenSpaceRectangle,width,height, imgData.length);
+  var pickedObjects = [];
+  var prevColor;
+  drawingBufferPositions.forEach((dp) => {
+    var x = Math.round(dp.center.x);
+    var y = Math.round(dp.center.y);
+    var diffX = Math.round(dp.diff.x);
+    var diffY = Math.round(dp.diff.y);
+    for (var i = -diffX; i <= diffX - 10; i += 10) {
+      for (var j = -diffY; j <= diffY - 10; j += 10) {
+        var color = imgData[(height - (y + i)) * width + (x + j)];
+        if (color != prevColor) {
+          if (colors32.indexOf(color, palettePos) === -1) {
+            // is not in the pallet
+            prevColor = colors32[palettePos--] = color; // add it
+          }
+        }
+      }
+    }
+  });
   for (var i = colors32.length - 1; i >= palettePos; i--) {
     var object = context.getObjectByPickColor(
       Cesium.Color.fromRgba(colors32[i])

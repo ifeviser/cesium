@@ -343,6 +343,127 @@ Picking.prototype.bulkRectPick = function (
   scene.jobScheduler.disableThisFrame();
 
   scene.updateFrameState();
+
+  frameState.cullingVolume = getPickCullingVolume(
+    scene,
+    drawingBufferPosition,
+    scratchRectangleWidth,
+    scratchRectangleHeight,
+    viewport
+  );
+
+  frameState.invertClassification = false;
+  frameState.passes.pick = true;
+  frameState.tilesetPassState = pickTilesetPassState;
+
+  us.update(frameState);
+
+  scene.updateEnvironment();
+
+  scratchRectangle.x = drawingBufferPosition.x;
+  scratchRectangle.y = drawingBufferPosition.y;
+  scratchRectangle.width = scratchRectangleWidth;
+  scratchRectangle.height = scratchRectangleHeight;
+  passState = view.pickFramebuffer.begin(scratchRectangle, view.viewport);
+
+  scene.updateAndExecuteCommands(passState, scratchColorZero);
+  scene.resolveFramebuffers(passState);
+
+  var object = view.pickFramebuffer.endBulkRect(scratchRectangle);
+  context.endFrame();
+  return object;
+};
+
+Picking.prototype.bulkPick = function (scene, windowPositions, bufferSize) {
+  //>>includeStart('debug', pragmas.debug);
+  if (!defined(windowPositions)) {
+    throw new DeveloperError("windowPosition is undefined.");
+  }
+  //>>includeEnd('debug');
+  var drawingBufferPositions = [];
+
+  windowPositions.forEach((wp) => {
+    var normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(wp);
+    var east = Cesium.Cartesian3.cross(
+      Cesium.Cartesian3.UNIT_Z,
+      normal,
+      new Cesium.Cartesian3()
+    );
+    Cesium.Cartesian3.normalize(east, east);
+    var north = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.cross(normal, east, new Cesium.Cartesian3()),
+      new Cesium.Cartesian3()
+    );
+
+    var northOffset = Cesium.Cartesian3.multiplyByScalar(
+      north,
+      bufferSize * 1000,
+      new Cesium.Cartesian3()
+    );
+    var eastOffset = Cesium.Cartesian3.multiplyByScalar(
+      east,
+      bufferSize * 1000,
+      new Cesium.Cartesian3()
+    );
+
+    var northPos = Cesium.Cartesian3.add(
+      wp,
+      northOffset,
+      new Cesium.Cartesian3()
+    );
+    var eastPos = Cesium.Cartesian3.add(
+      northPos,
+      eastOffset,
+      new Cesium.Cartesian3()
+    );
+    var center = Cesium.SceneTransforms.wgs84ToDrawingBufferCoordinates(
+      scene,
+      wp
+    );
+    var max = Cesium.SceneTransforms.wgs84ToDrawingBufferCoordinates(
+      scene,
+      eastPos
+    );
+
+    var diffX = Math.abs(center.x - max.x);
+    var diffY = Math.abs(center.y - max.y);
+
+    drawingBufferPositions.push({
+      center: center,
+      diff: new Cartesian2(diffX, diffY),
+    });
+  });
+
+  var context = scene.context;
+  var us = context.uniformState;
+  var frameState = scene.frameState;
+
+  var view = scene.defaultView;
+
+  scene.view = view;
+
+  scratchRectangleWidth = context.drawingBufferWidth; //maxX - minX;//defaultValue(width, 3.0);
+  scratchRectangleHeight = context.drawingBufferHeight; //maxY - minY;//defaultValue(height, scratchRectangleWidth);
+
+  var windowPosition = new Cartesian2(0, 0);
+
+  var viewport = view.viewport;
+  viewport.x = 0;
+  viewport.y = 0;
+  viewport.width = context.drawingBufferWidth;
+  viewport.height = context.drawingBufferHeight;
+
+  var passState = view.passState;
+  passState.viewport = BoundingRectangle.clone(viewport, passState.viewport);
+
+  var drawingBufferPosition = SceneTransforms.transformWindowToDrawingBuffer(
+    scene,
+    windowPosition,
+    scratchPosition
+  );
+  scene.jobScheduler.disableThisFrame();
+
+  scene.updateFrameState();
   frameState.cullingVolume = getPickCullingVolume(
     scene,
     drawingBufferPosition,
@@ -367,7 +488,10 @@ Picking.prototype.bulkRectPick = function (
   scene.updateAndExecuteCommands(passState, scratchColorZero);
   scene.resolveFramebuffers(passState);
 
-  var object = view.pickFramebuffer.endBulk(scratchRectangle);
+  var object = view.pickFramebuffer.endBulk(
+    scratchRectangle,
+    drawingBufferPositions
+  );
   context.endFrame();
   return object;
 };
