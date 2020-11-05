@@ -382,7 +382,7 @@ Picking.prototype.bulkPick = function (scene, windowPositions, bufferSize) {
   //>>includeEnd('debug');
   var drawingBufferPositions = [];
 
-  windowPositions.forEach((wp) => {
+  windowPositions.forEach(function (wp) {
     var normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(wp);
     var east = Cesium.Cartesian3.cross(
       Cesium.Cartesian3.UNIT_Z,

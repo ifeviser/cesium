@@ -1362,6 +1362,7 @@ GlobeSurfaceTileProvider.prototype._onLayerAdded = function (layer, index) {
       layer._imageryCache = {};
 
       that._quadtree.forEachLoadedTile(function (tile) {
+        tile._loadedCallbacks = {};
         // If this layer is still waiting to for the loaded callback, just return
         if (defined(tile._loadedCallbacks[layer._layerIndex])) {
           return;
@@ -1408,11 +1409,11 @@ GlobeSurfaceTileProvider.prototype._onLayerAdded = function (layer, index) {
           )
         ) {
           // Add callback to remove old TileImageries when the new TileImageries are ready
-          tile._loadedCallbacks[layer._layerIndex] = getTileReadyCallback(
+          /*tile._loadedCallbacks[layer._layerIndex] = getTileReadyCallback(
             tileImageriesToFree,
             layer,
             terrainProvider
-          );
+          );*/
 
           tile.state = QuadtreeTileLoadState.LOADING;
         }

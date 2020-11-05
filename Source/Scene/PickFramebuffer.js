@@ -205,7 +205,7 @@ PickFramebuffer.prototype.endBulk = function (
   //console.log(screenSpaceRectangle,width,height, imgData.length);
   var pickedObjects = [];
   var prevColor;
-  drawingBufferPositions.forEach((dp) => {
+  drawingBufferPositions.forEach(function (dp) {
     var x = Math.round(dp.center.x);
     var y = Math.round(dp.center.y);
     var diffX = Math.round(dp.diff.x);
