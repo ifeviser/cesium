@@ -1332,11 +1332,12 @@ function getTileReadyCallback(tileImageriesToFree, layer, terrainProvider) {
       if (!defined(imagery) || imagery.imageryLayer !== layer) {
         // Return false to keep the callback if we have to wait on the skeletons
         // Return true to remove the callback if something went wrong
-        return !layer._createTileImagerySkeletons(
-          tile,
-          terrainProvider,
-          endIndex
-        );
+        return false;
+        // return !layer._createTileImagerySkeletons(
+        //   tile,
+        //   terrainProvider,
+        //   endIndex
+        // );
       }
 
       for (i = startIndex; i < endIndex; ++i) {
@@ -1362,11 +1363,10 @@ GlobeSurfaceTileProvider.prototype._onLayerAdded = function (layer, index) {
       layer._imageryCache = {};
 
       that._quadtree.forEachLoadedTile(function (tile) {
-        tile._loadedCallbacks = {};
         // If this layer is still waiting to for the loaded callback, just return
-        if (defined(tile._loadedCallbacks[layer._layerIndex])) {
-          return;
-        }
+        //if (defined(tile._loadedCallbacks[layer._layerIndex])) {
+        //  return;
+        //}
 
         var i;
 
@@ -1409,11 +1409,11 @@ GlobeSurfaceTileProvider.prototype._onLayerAdded = function (layer, index) {
           )
         ) {
           // Add callback to remove old TileImageries when the new TileImageries are ready
-          /*tile._loadedCallbacks[layer._layerIndex] = getTileReadyCallback(
+          tile._loadedCallbacks[layer._layerIndex] = getTileReadyCallback(
             tileImageriesToFree,
             layer,
             terrainProvider
-          );*/
+          );
 
           tile.state = QuadtreeTileLoadState.LOADING;
         }
