@@ -245,7 +245,7 @@ function Primitive(options) {
     options.releaseGeometryInstances,
     true
   );
-  this._allowPicking = defaultValue(options.allowPicking, true);
+  this._allowPicking = defaultValue(options.allowPicking, false);
   this._asynchronous = defaultValue(options.asynchronous, true);
   this._compressVertices = defaultValue(options.compressVertices, true);
 

@@ -51,6 +51,7 @@ var defaultImageSize = new Cartesian2(1.0, 1.0);
  * @param {Number} [options.mass=1.0] Sets the minimum and maximum mass of particles in kilograms.
  * @param {Number} [options.minimumMass] Sets the minimum bound for the mass of a particle in kilograms. A particle's actual mass will be chosen as a random amount above this value.
  * @param {Number} [options.maximumMass] Sets the maximum mass of particles in kilograms. A particle's actual mass will be chosen as a random amount below this value.
+ * @param {Boolean} [options.allowPicking] Allow picking of particle billboards (default false)
  * @tutorial {@link https://cesium.com/docs/tutorials/particle-systems/|Particle Systems Tutorial}
  * @demo {@link https://sandcastle.cesium.com/?src=Particle%20System.html&label=Showcases|Particle Systems Tutorial Demo}
  * @demo {@link https://sandcastle.cesium.com/?src=Particle%20System%20Fireworks.html&label=Showcases|Particle Systems Fireworks Demo}
@@ -64,6 +65,13 @@ function ParticleSystem(options) {
    * @default true
    */
   this.show = defaultValue(options.show, true);
+
+  /**
+   * Whether to allow picking of particle billboards
+   * @type {Boolean}
+   * @default false
+   */
+  this.allowPicking = defaultValue(options.allowPicking, false);
 
   /**
    * An array of force callbacks. The callback is passed a {@link Particle} and the difference from the last time
@@ -732,7 +740,9 @@ ParticleSystem.prototype.update = function (frameState) {
   }
 
   if (!defined(this._billboardCollection)) {
-    this._billboardCollection = new BillboardCollection();
+    this._billboardCollection = new BillboardCollection({
+      allowPicking: this.allowPicking,
+    });
   }
 
   if (this._updateParticlePool) {

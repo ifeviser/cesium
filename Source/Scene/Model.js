@@ -415,7 +415,7 @@ function Model(options) {
    * @private
    */
   this._pickObject = options.pickObject;
-  this._allowPicking = defaultValue(options.allowPicking, true);
+  this._allowPicking = defaultValue(options.allowPicking, false);
 
   this._ready = false;
   this._readyPromise = when.defer();

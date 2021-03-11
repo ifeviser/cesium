@@ -112,6 +112,7 @@ var attributeLocationsInstanced = {
  * is used for rendering both opaque and translucent billboards. However, if either all of the billboards are completely opaque or all are completely translucent,
  * setting the technique to BlendOption.OPAQUE or BlendOption.TRANSLUCENT can improve performance by up to 2x.
  * @param {Boolean} [options.show=true] Determines if the billboards in the collection will be shown.
+ * @param {Boolean} [options.allowPicking=true] Determines if the billboards in the collection will be pickable.
  *
  * @performance For best performance, prefer a few collections, each with many billboards, to
  * many collections with only a few billboards each.  Organize collections so that billboards
@@ -200,6 +201,14 @@ function BillboardCollection(options) {
   this._boundingVolumeDirty = false;
 
   this._colorCommands = [];
+
+  /**
+   * Determines if billboards in this collection will be pickable.
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  this.allowPicking = defaultValue(options.allowPicking, true);
 
   /**
    * Determines if billboards in this collection will be shown.
@@ -2343,7 +2352,7 @@ BillboardCollection.prototype.update = function (frameState) {
         ? this._rsOpaque
         : this._rsTranslucent;
       command.debugShowBoundingVolume = this.debugShowBoundingVolume;
-      command.pickId = pickId;
+      if (this.allowPicking) command.pickId = pickId;
 
       if (this._instanced) {
         command.count = 6;

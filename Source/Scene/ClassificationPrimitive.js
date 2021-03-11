@@ -190,7 +190,7 @@ function ClassificationPrimitive(options) {
       options.releaseGeometryInstances,
       true
     ),
-    allowPicking: defaultValue(options.allowPicking, true),
+    allowPicking: defaultValue(options.allowPicking, false),
     asynchronous: defaultValue(options.asynchronous, true),
     compressVertices: defaultValue(options.compressVertices, true),
     _createBoundingVolumeFunction: undefined,

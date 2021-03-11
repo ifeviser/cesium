@@ -181,7 +181,7 @@ function GroundPolylinePrimitive(options) {
       options.releaseGeometryInstances,
       true
     ),
-    allowPicking: defaultValue(options.allowPicking, true),
+    allowPicking: defaultValue(options.allowPicking, false),
     asynchronous: defaultValue(options.asynchronous, true),
     compressVertices: false,
     _createShaderProgramFunction: undefined,
