@@ -8,6 +8,7 @@ import Color from "../Core/Color.js";
 import defaultValue from "../Core/defaultValue.js";
 import defined from "../Core/defined.js";
 import DeveloperError from "../Core/DeveloperError.js";
+import Ellipsoid from "../Core/Ellipsoid.js";
 import Matrix4 from "../Core/Matrix4.js";
 import OrthographicFrustum from "../Core/OrthographicFrustum.js";
 import OrthographicOffCenterFrustum from "../Core/OrthographicOffCenterFrustum.js";
@@ -383,47 +384,29 @@ Picking.prototype.bulkPick = function (scene, windowPositions, bufferSize) {
   var drawingBufferPositions = [];
 
   windowPositions.forEach(function (wp) {
-    var normal = Cesium.Ellipsoid.WGS84.geodeticSurfaceNormal(wp);
-    var east = Cesium.Cartesian3.cross(
-      Cesium.Cartesian3.UNIT_Z,
-      normal,
-      new Cesium.Cartesian3()
-    );
-    Cesium.Cartesian3.normalize(east, east);
-    var north = Cesium.Cartesian3.normalize(
-      Cesium.Cartesian3.cross(normal, east, new Cesium.Cartesian3()),
-      new Cesium.Cartesian3()
+    var normal = Ellipsoid.WGS84.geodeticSurfaceNormal(wp);
+    var east = Cartesian3.cross(Cartesian3.UNIT_Z, normal, new Cartesian3());
+    Cartesian3.normalize(east, east);
+    var north = Cartesian3.normalize(
+      Cartesian3.cross(normal, east, new Cartesian3()),
+      new Cartesian3()
     );
 
-    var northOffset = Cesium.Cartesian3.multiplyByScalar(
+    var northOffset = Cartesian3.multiplyByScalar(
       north,
       bufferSize * 1000,
-      new Cesium.Cartesian3()
+      new Cartesian3()
     );
-    var eastOffset = Cesium.Cartesian3.multiplyByScalar(
+    var eastOffset = Cartesian3.multiplyByScalar(
       east,
       bufferSize * 1000,
-      new Cesium.Cartesian3()
+      new Cartesian3()
     );
 
-    var northPos = Cesium.Cartesian3.add(
-      wp,
-      northOffset,
-      new Cesium.Cartesian3()
-    );
-    var eastPos = Cesium.Cartesian3.add(
-      northPos,
-      eastOffset,
-      new Cesium.Cartesian3()
-    );
-    var center = Cesium.SceneTransforms.wgs84ToDrawingBufferCoordinates(
-      scene,
-      wp
-    );
-    var max = Cesium.SceneTransforms.wgs84ToDrawingBufferCoordinates(
-      scene,
-      eastPos
-    );
+    var northPos = Cartesian3.add(wp, northOffset, new Cartesian3());
+    var eastPos = Cartesian3.add(northPos, eastOffset, new Cartesian3());
+    var center = SceneTransforms.wgs84ToDrawingBufferCoordinates(scene, wp);
+    var max = SceneTransforms.wgs84ToDrawingBufferCoordinates(scene, eastPos);
 
     var diffX = Math.abs(center.x - max.x);
     var diffY = Math.abs(center.y - max.y);

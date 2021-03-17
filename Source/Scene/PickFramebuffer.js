@@ -169,9 +169,7 @@ PickFramebuffer.prototype.endBulkRect = function (screenSpaceRectangle) {
     }
   }
   for (var i = colors32.length - 1; i >= palettePos; i--) {
-    var object = context.getObjectByPickColor(
-      Cesium.Color.fromRgba(colors32[i])
-    );
+    var object = context.getObjectByPickColor(Color.fromRgba(colors32[i]));
     if (defined(object)) {
       pickedObjects.push(object);
     }
@@ -223,9 +221,7 @@ PickFramebuffer.prototype.endBulk = function (
     }
   });
   for (var i = colors32.length - 1; i >= palettePos; i--) {
-    var object = context.getObjectByPickColor(
-      Cesium.Color.fromRgba(colors32[i])
-    );
+    var object = context.getObjectByPickColor(Color.fromRgba(colors32[i]));
     if (defined(object)) {
       pickedObjects.push(object);
     }
